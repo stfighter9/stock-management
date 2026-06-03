@@ -130,7 +130,7 @@ test('resolveBatchLine validates MIX_COLOR selections against required quantity'
         },
         { ...fixture.lookups, catalogBySku: fixture.catalogBySku },
       ),
-    /Tổng số lượng mix phải bằng 3/,
+    /Total mix quantity must equal 3/,
   )
 })
 
@@ -146,7 +146,7 @@ test('assertEnoughStock fails when aggregated outputs exceed inventory', () => {
         ],
         fixture.lookups.inventoryByProduct,
       ),
-    /Thiếu tồn cho ODOO-A: cần 13, hiện có 12/,
+    /Insufficient stock for ODOO-A: need 13, have 12/,
   )
 })
 
@@ -175,7 +175,7 @@ test('report builders normalize rows and sort recent transactions descending', (
       reference_type: 'RETURN_FROM_CUSTOMER',
       odoo_product_key: 'ODOO-A',
       qty: '4',
-      odoo_status: 'Chờ ghi nhận Odoo',
+      odoo_status: 'Pending Odoo sync',
     },
   ], productsByKey)
   const outbound = buildDailyOutboundReport([
@@ -214,7 +214,7 @@ test('report builders normalize rows and sort recent transactions descending', (
       displayName: 'Ao do',
       qty: 4,
       count: 1,
-      odooStatus: 'Chờ ghi nhận Odoo',
+      odooStatus: 'Pending Odoo sync',
     },
   ])
   assert.deepEqual(outbound, [

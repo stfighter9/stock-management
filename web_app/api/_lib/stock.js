@@ -17,9 +17,9 @@ export function makeId(prefix) {
 }
 
 export function inventoryStatus(currentQty) {
-  if (currentQty < 0) return 'Âm tồn'
-  if (currentQty === 0) return 'Hết hàng'
-  return 'Còn hàng'
+  if (currentQty < 0) return 'Negative stock'
+  if (currentQty === 0) return 'Out of stock'
+  return 'In stock'
 }
 
 export function buildProducts(rawRows) {
@@ -261,20 +261,20 @@ export function resolveBatchLine(line, lookups) {
   const mapping = lookups.mappingsBySku.get(line.shopeeSku)
 
   if (!catalogItem) {
-    throw new Error(`SKU Shopee không tồn tại: ${line.shopeeSku}`)
+    throw new Error(`Shopee SKU does not exist: ${line.shopeeSku}`)
   }
   if (!mapping || !mapping.active) {
-    throw new Error(`SKU Shopee chưa có mapping hoạt động: ${line.shopeeSku}`)
+    throw new Error(`Shopee SKU has no active mapping: ${line.shopeeSku}`)
   }
   if (line.quantity <= 0) {
-    throw new Error(`Số lượng phải lớn hơn 0 cho SKU ${line.shopeeSku}`)
+    throw new Error(`Quantity must be greater than 0 for SKU ${line.shopeeSku}`)
   }
 
   const requiredQty = line.quantity * mapping.conversionQty
 
   if (mapping.mappingType === 'FIXED_SKU') {
     if (!mapping.odooProductKey) {
-      throw new Error(`Thiếu odoo_product_key cho SKU ${line.shopeeSku}`)
+      throw new Error(`Missing odoo_product_key for SKU ${line.shopeeSku}`)
     }
     return {
       catalogItem,
@@ -287,7 +287,7 @@ export function resolveBatchLine(line, lookups) {
   if (mapping.mappingType === 'COMBO_SKU') {
     const components = (lookups.componentsBySku.get(line.shopeeSku) || []).filter((component) => component.active)
     if (!components.length) {
-      throw new Error(`Thiếu component cho combo SKU ${line.shopeeSku}`)
+      throw new Error(`Missing components for combo SKU ${line.shopeeSku}`)
     }
     return {
       catalogItem,
@@ -305,13 +305,13 @@ export function resolveBatchLine(line, lookups) {
   const totalQty = outputs.reduce((sum, selection) => sum + selection.qty, 0)
 
   if (!outputs.length) {
-    throw new Error(`Chưa chọn product mix cho SKU ${line.shopeeSku}`)
+    throw new Error(`No mix products selected for SKU ${line.shopeeSku}`)
   }
   if (outputs.some((selection) => !validOptions.has(selection.odooProductKey))) {
-    throw new Error(`Có mã Odoo không hợp lệ trong mix của SKU ${line.shopeeSku}`)
+    throw new Error(`Invalid Odoo product found in mix for SKU ${line.shopeeSku}`)
   }
   if (totalQty !== requiredQty) {
-    throw new Error(`Tổng số lượng mix phải bằng ${requiredQty} cho SKU ${line.shopeeSku}`)
+    throw new Error(`Total mix quantity must equal ${requiredQty} for SKU ${line.shopeeSku}`)
   }
 
   return {
@@ -331,7 +331,7 @@ export function assertEnoughStock(outputs, inventoryByProduct) {
   totals.forEach((qty, odooProductKey) => {
     const currentQty = inventoryByProduct.get(odooProductKey) || 0
     if (currentQty < qty) {
-      throw new Error(`Thiếu tồn cho ${odooProductKey}: cần ${qty}, hiện có ${currentQty}`)
+      throw new Error(`Insufficient stock for ${odooProductKey}: need ${qty}, have ${currentQty}`)
     }
   })
 }

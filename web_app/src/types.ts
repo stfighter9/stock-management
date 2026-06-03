@@ -1,7 +1,7 @@
 export type MappingType = 'FIXED_SKU' | 'MIX_COLOR' | 'COMBO_SKU'
 export type TransactionType = 'IN' | 'OUT' | 'ADJUST' | 'CANCEL_REVERSAL'
 export type ReferenceType = 'TRANSFER_FROM_MAIN' | 'RETURN_FROM_CUSTOMER' | 'SHOPEE_ORDER' | 'STOCKTAKE'
-export type OdooStatus = 'Chờ ghi nhận Odoo' | 'Đã ghi nhận Odoo' | 'Không cần ghi nhận'
+export type OdooStatus = 'Pending Odoo sync' | 'Synced to Odoo' | 'No Odoo sync needed'
 export type ViewId = 'dashboard' | 'orders' | 'returns' | 'inbound' | 'mapping' | 'reports'
 export type FlowMode = 'OUT' | 'IN'
 export type ReportTab = 'inventory' | 'inbound' | 'outbound'

@@ -10,7 +10,7 @@ import {
 
 function requireNonEmptyString(value, label) {
   if (!value || !String(value).trim()) {
-    throw new Error(`Thiếu ${label}`)
+    throw new Error(`Missing ${label}`)
   }
   return String(value).trim()
 }
@@ -18,7 +18,7 @@ function requireNonEmptyString(value, label) {
 function requirePositiveNumber(value, label) {
   const number = Number(value)
   if (!Number.isFinite(number) || number <= 0) {
-    throw new Error(`${label} phải lớn hơn 0`)
+    throw new Error(`${label} must be greater than 0`)
   }
   return number
 }
@@ -33,7 +33,7 @@ export async function confirmPickBatch(payload, bootstrap) {
   const note = String(payload.note || '')
   const lines = Array.isArray(payload.lines) ? payload.lines : []
   if (!lines.length) {
-    throw new Error('Thiếu dòng pick')
+    throw new Error('Pick batch is empty')
   }
 
   const catalogBySku = new Map(bootstrap.shopeeCatalog.map((item) => [item.sku, item]))
@@ -69,7 +69,7 @@ export async function confirmPickBatch(payload, bootstrap) {
       input_shopee_sku: line.catalogItem.sku,
       shopee_product_name: makeShopeeProductName(line.catalogItem),
       order_qty: line.requiredQty / line.mapping.conversionQty,
-      input_status: 'Đã xuất kho',
+      input_status: 'Picked',
       created_by: createdBy,
       note,
     })
@@ -87,8 +87,8 @@ export async function confirmPickBatch(payload, bootstrap) {
         display_name: bootstrap.lookups.productsByKey.get(output.odooProductKey)?.displayName || output.odooProductKey,
         required_qty: output.qty,
         selected_qty: output.qty,
-        stock_status: currentQty >= output.qty ? 'Đủ hàng' : 'Thiếu hàng',
-        confirm_status: 'Đã xuất kho',
+        stock_status: currentQty >= output.qty ? 'In stock' : 'Out of stock',
+        confirm_status: 'Picked',
       })
 
       transactionRows.push({
@@ -102,7 +102,7 @@ export async function confirmPickBatch(payload, bootstrap) {
         source_input_id: inputId,
         source_shopee_sku: line.catalogItem.sku,
         source_mapping_type: line.mapping.mappingType,
-        odoo_status: 'Không cần ghi nhận',
+        odoo_status: 'No Odoo sync needed',
         created_by: createdBy,
         note,
       })
@@ -136,7 +136,7 @@ export async function confirmReturnBatch(payload, bootstrap) {
   const note = String(payload.note || '')
   const lines = Array.isArray(payload.lines) ? payload.lines : []
   if (!lines.length) {
-    throw new Error('Thiếu dòng hoàn hàng')
+    throw new Error('Return batch is empty')
   }
 
   const catalogBySku = new Map(bootstrap.shopeeCatalog.map((item) => [item.sku, item]))
@@ -171,7 +171,7 @@ export async function confirmReturnBatch(payload, bootstrap) {
       return_shopee_sku: line.catalogItem.sku,
       shopee_product_name: makeShopeeProductName(line.catalogItem),
       return_qty: line.requiredQty / line.mapping.conversionQty,
-      return_status: 'Đã nhập kho',
+      return_status: 'Restocked',
       created_by: createdBy,
       note,
     })
@@ -188,7 +188,7 @@ export async function confirmReturnBatch(payload, bootstrap) {
         display_name: bootstrap.lookups.productsByKey.get(output.odooProductKey)?.displayName || output.odooProductKey,
         return_required_qty: output.qty,
         selected_qty: output.qty,
-        confirm_status: 'Đã nhập kho',
+        confirm_status: 'Restocked',
       })
 
       transactionRows.push({
@@ -202,7 +202,7 @@ export async function confirmReturnBatch(payload, bootstrap) {
         source_input_id: inputId,
         source_shopee_sku: line.catalogItem.sku,
         source_mapping_type: line.mapping.mappingType,
-        odoo_status: 'Chờ ghi nhận Odoo',
+        odoo_status: 'Pending Odoo sync',
         created_by: createdBy,
         note,
       })
@@ -238,7 +238,7 @@ export async function confirmInbound(payload, bootstrap) {
   const note = String(payload.note || '')
 
   if (!bootstrap.lookups.productsByKey.has(odooProductKey)) {
-    throw new Error(`Mã Odoo không tồn tại: ${odooProductKey}`)
+    throw new Error(`Odoo product does not exist: ${odooProductKey}`)
   }
 
   const transactionRows = [
@@ -253,7 +253,7 @@ export async function confirmInbound(payload, bootstrap) {
       source_input_id: makeId('INBOUND'),
       source_shopee_sku: '',
       source_mapping_type: '',
-      odoo_status: 'Chờ ghi nhận Odoo',
+      odoo_status: 'Pending Odoo sync',
       created_by: createdBy,
       note,
     },

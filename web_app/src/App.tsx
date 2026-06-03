@@ -48,12 +48,12 @@ import type {
 import './App.css'
 
 const navItems: Array<{ id: ViewId; label: string; icon: typeof Boxes }> = [
-  { id: 'dashboard', label: 'Tổng quan', icon: Boxes },
-  { id: 'orders', label: 'Pick kho', icon: ShoppingBag },
-  { id: 'returns', label: 'Hàng hoàn', icon: Undo2 },
-  { id: 'inbound', label: 'Nhập kho', icon: ArrowDownToLine },
+  { id: 'dashboard', label: 'Overview', icon: Boxes },
+  { id: 'orders', label: 'Pick', icon: ShoppingBag },
+  { id: 'returns', label: 'Returns', icon: Undo2 },
+  { id: 'inbound', label: 'Inbound', icon: ArrowDownToLine },
   { id: 'mapping', label: 'Mapping', icon: Settings },
-  { id: 'reports', label: 'Báo cáo', icon: BarChart3 },
+  { id: 'reports', label: 'Reports', icon: BarChart3 },
 ]
 
 const EMPTY_PRODUCTS: Product[] = []
@@ -109,7 +109,7 @@ function App() {
       setBootstrap(data)
       setLoadError('')
     } catch (error) {
-      setLoadError(error instanceof Error ? error.message : 'Không tải được dữ liệu Google Sheets')
+      setLoadError(error instanceof Error ? error.message : 'Failed to load Google Sheets data')
     } finally {
       setIsLoading(false)
     }
@@ -122,7 +122,7 @@ function App() {
         setLoadError('')
       })
       .catch((error: unknown) => {
-        setLoadError(error instanceof Error ? error.message : 'Không tải được dữ liệu Google Sheets')
+        setLoadError(error instanceof Error ? error.message : 'Failed to load Google Sheets data')
       })
       .finally(() => {
         setIsLoading(false)
@@ -244,7 +244,7 @@ function App() {
     return (
       <div className="app-shell">
         <main className="workspace">
-          <div className="empty-state">Đang tải dữ liệu từ Google Sheets...</div>
+          <div className="empty-state">Loading data from Google Sheets...</div>
         </main>
       </div>
     )
@@ -258,7 +258,7 @@ function App() {
             <PackageCheck size={22} />
           </div>
           <div>
-            <strong>Kho Shopee</strong>
+            <strong>Shopee Warehouse</strong>
             <span>Odoo Sheets</span>
           </div>
         </div>
@@ -282,7 +282,7 @@ function App() {
           <FileSpreadsheet size={18} />
           <div>
             <strong>Google Sheets</strong>
-            <span>{loadError ? 'Lỗi kết nối dữ liệu' : 'Dữ liệu runtime từ Google Sheets'}</span>
+            <span>{loadError ? 'Data connection error' : 'Runtime data from Google Sheets'}</span>
           </div>
         </div>
       </aside>
@@ -290,7 +290,7 @@ function App() {
       <main className="workspace">
         <header className="topbar">
           <div>
-            <p className="eyebrow">Vận hành kho Shopee</p>
+            <p className="eyebrow">Shopee warehouse operations</p>
             <h1>{navItems.find((item) => item.id === activeView)?.label}</h1>
           </div>
           <div className="search-box">
@@ -298,7 +298,7 @@ function App() {
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Tìm mã Odoo, SKU Shopee hoặc tên sản phẩm"
+              placeholder="Search Odoo code, Shopee SKU, or product name"
             />
           </div>
         </header>
@@ -386,28 +386,28 @@ function Dashboard({
   return (
     <div className="view-stack">
       <section className="metrics-grid">
-        <Metric icon={Layers3} label="Mã Odoo" value={totalProducts} />
-        <Metric icon={ArrowUpFromLine} label="Xuất hôm nay" value={formatQty(outboundToday)} />
-        <Metric icon={ArrowDownToLine} label="Nhập hôm nay" value={formatQty(inboundToday)} />
-        <Metric icon={ClipboardList} label="SKU chưa mapping" value={pendingMappings} tone={pendingMappings > 0 ? 'danger' : 'ok'} />
+        <Metric icon={Layers3} label="Odoo SKUs" value={totalProducts} />
+        <Metric icon={ArrowUpFromLine} label="Outbound today" value={formatQty(outboundToday)} />
+        <Metric icon={ArrowDownToLine} label="Inbound today" value={formatQty(inboundToday)} />
+        <Metric icon={ClipboardList} label="Unmapped SKUs" value={pendingMappings} tone={pendingMappings > 0 ? 'danger' : 'ok'} />
       </section>
 
       <section className="split-grid">
-        <Panel title="Tồn hiện tại" icon={Boxes}>
+        <Panel title="Current inventory" icon={Boxes}>
           <InventoryTable rows={inventoryRows.slice(0, 8)} compact />
         </Panel>
-        <Panel title="Tồn hiển thị Shopee" icon={ShoppingBag}>
+        <Panel title="Shopee display stock" icon={ShoppingBag}>
           <CatalogTable rows={catalogRows.slice(0, 8)} />
         </Panel>
       </section>
 
       <section className="split-grid">
-        <Panel title="Giao dịch mới nhất" icon={RefreshCcw}>
+        <Panel title="Latest transactions" icon={RefreshCcw}>
           <TransactionList rows={transactions.slice(0, 8)} />
         </Panel>
-        <Panel title="Tổng hợp xuất trong ngày" icon={ArrowUpFromLine}>
+        <Panel title="Daily outbound summary" icon={ArrowUpFromLine}>
           <SimpleTable
-            headers={['Mã Odoo', 'SL xuất', 'Dòng đơn']}
+            headers={['Odoo code', 'Outbound qty', 'Order lines']}
             rows={dailyOutbound.slice(0, 8).map((row) => [row.productKey, formatQty(row.qty), row.count])}
           />
         </Panel>
@@ -492,20 +492,20 @@ function ShopeeBatchScreen({
     const errors: string[] = []
     lineResults.forEach((result, index) => {
       if (result.errors.length > 0) {
-        errors.push(`Dòng ${index + 1}: ${result.errors[0]}`)
+        errors.push(`Line ${index + 1}: ${result.errors[0]}`)
       }
     })
 
     if (mode === 'OUT') {
       aggregatedOutputs.forEach((row) => {
         if (row.currentQty < row.qty) {
-          errors.push(`Thiếu ${formatQty(row.qty - row.currentQty)} ở ${row.odooProductKey}`)
+          errors.push(`Short ${formatQty(row.qty - row.currentQty)} on ${row.odooProductKey}`)
         }
       })
     }
 
     if (lineResults.every((result) => result.outputs.length === 0)) {
-      errors.push('Chưa có dòng hợp lệ để tạo giao dịch')
+      errors.push('No valid lines available to create transactions')
     }
 
     return errors
@@ -533,17 +533,17 @@ function ShopeeBatchScreen({
       setIsSubmitting(true)
       await onConfirm(mode, activeBatchId, payloadLines)
     } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : 'Không xác nhận được batch')
+      setSubmitError(error instanceof Error ? error.message : 'Failed to confirm batch')
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  const modeLabel = mode === 'OUT' ? 'Pick kho theo list SKU Shopee' : 'Nhập hoàn theo list SKU Shopee'
-  const confirmLabel = mode === 'OUT' ? 'Xác nhận pick' : 'Xác nhận nhập hoàn'
+  const modeLabel = mode === 'OUT' ? 'Pick from Shopee SKU list' : 'Restock from Shopee SKU list'
+  const confirmLabel = mode === 'OUT' ? 'Confirm pick' : 'Confirm return'
   const batchIdLabel = mode === 'OUT' ? 'Pick Batch ID' : 'Return Batch ID'
   const batchIdValue = mode === 'OUT' ? pickBatchId : returnBatchId
-  const addLineLabel = mode === 'OUT' ? 'Thêm SKU' : 'Thêm SKU hoàn'
+  const addLineLabel = mode === 'OUT' ? 'Add SKU' : 'Add return SKU'
 
   return (
     <section className="form-layout">
@@ -553,7 +553,7 @@ function ShopeeBatchScreen({
             <div className="batch-fixed-id">
               <span>{batchIdLabel}</span>
               <strong>{batchIdValue}</strong>
-              <em>Hệ thống tự sinh</em>
+              <em>Auto-generated</em>
             </div>
             <div className="stack-actions">
               <button className="secondary-action" type="button" onClick={addLine}>
@@ -599,7 +599,7 @@ function ShopeeBatchScreen({
                             <input
                               value={result.line.query}
                               onChange={(event) => updateLine(result.line.lineId, { query: event.target.value })}
-                              placeholder="Tìm SKU / tên sản phẩm"
+                              placeholder="Search SKU / product name"
                             />
                             <select
                               value={result.line.selectedSku}
@@ -620,7 +620,7 @@ function ShopeeBatchScreen({
                                 })
                               }}
                             >
-                              <option value="">Chọn SKU ecom</option>
+                              <option value="">Select ecommerce SKU</option>
                               {catalogOptions.map((option) => (
                                 <option key={option.sku} value={option.sku}>
                                   {option.sku} - {option.productName}
@@ -663,10 +663,10 @@ function ShopeeBatchScreen({
                           <td colSpan={5}>
                             <div className="pick-child-panel">
                               <div className="line-summary">
-                                <strong>Dòng {index + 1}</strong>
-                                <span>SKU ecom: {result.catalogItem?.sku ?? 'Chưa chọn'}</span>
-                                <span>Mapping: {result.mapping?.mappingType ?? 'Thiếu mapping'}</span>
-                                <span>Tồn ecom: {formatQty(result.catalogItem ? catalogRows.find((row) => row.sku === result.catalogItem?.sku)?.stock ?? 0 : 0)}</span>
+                                <strong>Line {index + 1}</strong>
+                                <span>Ecommerce SKU: {result.catalogItem?.sku ?? 'Not selected'}</span>
+                                <span>Mapping: {result.mapping?.mappingType ?? 'Missing mapping'}</span>
+                                <span>Ecommerce stock: {formatQty(result.catalogItem ? catalogRows.find((row) => row.sku === result.catalogItem?.sku)?.stock ?? 0 : 0)}</span>
                               </div>
 
                               <ConversionSummary mapping={result.mapping} shopeeQty={result.line.qty} requiredQty={result.requiredQty} />
@@ -699,19 +699,19 @@ function ShopeeBatchScreen({
         </>
       </Panel>
 
-      <Panel title="Tổng hợp quy đổi" icon={ClipboardList}>
+      <Panel title="Conversion summary" icon={ClipboardList}>
         <div className="summary-stack">
           <div className="summary-metrics">
             <div>
-              <span>Số dòng Shopee</span>
+              <span>Shopee lines</span>
               <strong>{formatQty(lines.length)}</strong>
             </div>
             <div>
-              <span>Tổng SL Shopee</span>
+              <span>Total Shopee qty</span>
               <strong>{formatQty(lines.reduce((sum, line) => sum + line.qty, 0))}</strong>
             </div>
             <div>
-              <span>Dòng Odoo</span>
+              <span>Odoo lines</span>
               <strong>{formatQty(aggregatedOutputs.length)}</strong>
             </div>
           </div>
@@ -722,7 +722,7 @@ function ShopeeBatchScreen({
             </div>
           ) : (
             <div className="notice ok">
-              Batch sẵn sàng tạo giao dịch
+              Batch is ready to create transactions
             </div>
           )}
 
@@ -740,7 +740,7 @@ function ShopeeBatchScreen({
 
           <button className="primary-action" disabled={!canConfirm || isSubmitting} type="button" onClick={() => void confirm()}>
             <Check size={18} />
-            <span>{isSubmitting ? 'Đang ghi dữ liệu...' : confirmLabel}</span>
+            <span>{isSubmitting ? 'Writing data...' : confirmLabel}</span>
           </button>
         </div>
       </Panel>
@@ -771,10 +771,10 @@ function InboundScreen({
         odooProductKey: selectedProductKey,
         qty,
         createdBy: 'web-user',
-        note: 'Nhập từ kho tổng',
+        note: 'Inbound from main warehouse',
       })
     } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : 'Không tạo được giao dịch nhập')
+      setSubmitError(error instanceof Error ? error.message : 'Failed to create inbound transaction')
     } finally {
       setIsSubmitting(false)
     }
@@ -782,12 +782,12 @@ function InboundScreen({
 
   return (
     <section className="form-layout">
-      <Panel title="Nhập từ kho tổng" icon={ArrowDownToLine}>
+      <Panel title="Inbound from main warehouse" icon={ArrowDownToLine}>
         <div className="form-grid">
-          <Field label="Mã chứng từ">
+          <Field label="Reference ID">
             <input value={referenceId} onChange={(event) => setReferenceId(event.target.value)} />
           </Field>
-          <Field label="Mã Odoo">
+          <Field label="Odoo product">
             <select value={selectedProductKey} onChange={(event) => setProductKey(event.target.value)}>
               {products.map((product) => (
                 <option key={product.key} value={product.key}>
@@ -796,21 +796,21 @@ function InboundScreen({
               ))}
             </select>
           </Field>
-          <Field label="Số lượng nhập">
+          <Field label="Inbound quantity">
             <input min={1} type="number" value={qty} onChange={(event) => setQty(Number(event.target.value))} />
           </Field>
         </div>
         {submitError && <div className="notice danger">{submitError}</div>}
         <button className="primary-action" disabled={qty <= 0 || !selectedProductKey || isSubmitting} type="button" onClick={() => void confirm()}>
           <Plus size={18} />
-          <span>{isSubmitting ? 'Đang ghi dữ liệu...' : 'Tạo giao dịch IN'}</span>
+          <span>{isSubmitting ? 'Writing data...' : 'Create IN transaction'}</span>
         </button>
       </Panel>
-      <Panel title="Nguyên tắc" icon={FileSpreadsheet}>
+      <Panel title="Rules" icon={FileSpreadsheet}>
         <div className="rule-list">
-          <p>Nhập từ kho tổng dùng mã Odoo trực tiếp.</p>
-          <p>Hàng hoàn đi qua list SKU Shopee, không nhập trực tiếp mã Odoo.</p>
-          <p>Stock Shopee chỉ là số hiển thị, giao dịch thật luôn ghi theo mã Odoo.</p>
+          <p>Inbound from the main warehouse uses Odoo products directly.</p>
+          <p>Returns go through the Shopee SKU list and are not received directly by Odoo code.</p>
+          <p>Shopee stock is display-only. Real transactions are always recorded against Odoo products.</p>
         </div>
       </Panel>
     </section>
@@ -839,7 +839,7 @@ function MappingScreen({
       <section className="split-grid">
         <Panel title="Shopee Mapping" icon={Settings}>
           <SimpleTable
-            headers={['Shopee SKU', 'Type', 'Odoo / Mix group', 'Hệ số', 'Active']}
+            headers={['Shopee SKU', 'Type', 'Odoo / Mix group', 'Conversion', 'Active']}
             rows={mappings.map((item) => [
               item.shopeeSku,
               item.mappingType,
@@ -851,7 +851,7 @@ function MappingScreen({
         </Panel>
         <Panel title="Mapping Components" icon={Layers3}>
           <SimpleTable
-            headers={['Shopee SKU', 'No', 'Mã Odoo', 'SL thành phần', 'Active']}
+            headers={['Shopee SKU', 'No', 'Odoo product', 'Component qty', 'Active']}
             rows={components.map((item) => [
               item.shopeeSku,
               item.componentNo,
@@ -870,7 +870,7 @@ function MappingScreen({
             rows={mixOptions.map((item) => [item.mixGroupId, item.odooProductKey, item.displayName, item.active ? 'TRUE' : 'FALSE'])}
           />
         </Panel>
-        <Panel title="Danh mục mã Odoo" icon={Boxes}>
+        <Panel title="Odoo catalog" icon={Boxes}>
           <SimpleTable
             headers={['odoo_product_key', 'display_name', 'unit']}
             rows={products.map((item) => [item.key, item.displayName, item.unit])}
@@ -896,9 +896,9 @@ function ReportsScreen({
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
   const reportTabs: Array<{ id: ReportTab; label: string }> = [
-    { id: 'inventory', label: 'Xem tồn kho hiện tại' },
-    { id: 'inbound', label: 'Báo cáo nhập kho' },
-    { id: 'outbound', label: 'Báo cáo xuất kho' },
+    { id: 'inventory', label: 'Current inventory' },
+    { id: 'inbound', label: 'Inbound report' },
+    { id: 'outbound', label: 'Outbound report' },
   ]
   const isWithinDateRange = useCallback((date: string) => {
     if (dateFrom && date < dateFrom) return false
@@ -933,10 +933,10 @@ function ReportsScreen({
 
       {activeTab === 'inventory' && (
         <>
-          <Panel title="Báo cáo tồn kho hiện tại" icon={Boxes}>
+          <Panel title="Current inventory report" icon={Boxes}>
             <InventoryTable rows={inventoryRows} />
           </Panel>
-          <Panel title="Tồn hiển thị trên Shopee" icon={ShoppingBag}>
+          <Panel title="Shopee display stock" icon={ShoppingBag}>
             <CatalogTable rows={catalogRows} />
           </Panel>
         </>
@@ -944,19 +944,19 @@ function ReportsScreen({
 
       {activeTab === 'inbound' && (
         <section className="view-stack">
-          <Panel title="Khoảng thời gian" icon={FileSpreadsheet}>
+          <Panel title="Date range" icon={FileSpreadsheet}>
             <div className="form-grid report-filter-grid">
-              <Field label="Từ ngày">
+              <Field label="From">
                 <input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} />
               </Field>
-              <Field label="Đến ngày">
+              <Field label="To">
                 <input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} />
               </Field>
             </div>
           </Panel>
-          <Panel title="Báo cáo nhập kho" icon={ArrowDownToLine}>
+          <Panel title="Inbound report" icon={ArrowDownToLine}>
             <SimpleTable
-              headers={['Ngày', 'Nguồn', 'Mã Odoo', 'Tên sản phẩm', 'SL nhập', 'Dòng', 'Odoo status']}
+              headers={['Date', 'Source', 'Odoo code', 'Product name', 'Inbound qty', 'Lines', 'Odoo status']}
               rows={filteredInbound.map((row) => [
                 row.date,
                 row.referenceType,
@@ -973,19 +973,19 @@ function ReportsScreen({
 
       {activeTab === 'outbound' && (
         <section className="view-stack">
-          <Panel title="Khoảng thời gian" icon={FileSpreadsheet}>
+          <Panel title="Date range" icon={FileSpreadsheet}>
             <div className="form-grid report-filter-grid">
-              <Field label="Từ ngày">
+              <Field label="From">
                 <input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} />
               </Field>
-              <Field label="Đến ngày">
+              <Field label="To">
                 <input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} />
               </Field>
             </div>
           </Panel>
-          <Panel title="Báo cáo xuất kho" icon={ArrowUpFromLine}>
+          <Panel title="Outbound report" icon={ArrowUpFromLine}>
             <SimpleTable
-              headers={['Ngày', 'Mã Odoo', 'Tên sản phẩm', 'SL xuất', 'Dòng đơn']}
+              headers={['Date', 'Odoo code', 'Product name', 'Outbound qty', 'Order lines']}
               rows={filteredOutbound.map((row) => [row.date, row.productKey, row.displayName, formatQty(row.qty), row.count])}
             />
           </Panel>
@@ -1038,7 +1038,7 @@ function ConversionSummary({
   requiredQty: number
 }) {
   if (!mapping) {
-    return <div className="notice danger">Thiếu mapping Shopee</div>
+    return <div className="notice danger">Missing Shopee mapping</div>
   }
 
   return (
@@ -1048,15 +1048,15 @@ function ConversionSummary({
         <strong>{mapping.mappingType}</strong>
       </div>
       <div>
-        <span>SL Shopee</span>
+        <span>Shopee qty</span>
         <strong>{formatQty(shopeeQty)}</strong>
       </div>
       <div>
-        <span>Hệ số</span>
+        <span>Conversion</span>
         <strong>{formatQty(mapping.conversionQty)}</strong>
       </div>
       <div>
-        <span>SL Odoo quy đổi</span>
+        <span>Converted Odoo qty</span>
         <strong>{formatQty(requiredQty)}</strong>
       </div>
     </div>
@@ -1087,7 +1087,7 @@ function MixSelectionEditor({
   return (
     <div className="mix-editor">
       <div className={total === requiredQty ? 'notice ok' : 'notice warning'}>
-        Tổng đã chọn {formatQty(total)} / {formatQty(requiredQty)}
+        Selected total {formatQty(total)} / {formatQty(requiredQty)}
       </div>
       <div className="mix-table">
         <div className="mix-table-head">
@@ -1125,7 +1125,7 @@ function MixSelectionEditor({
         onClick={() => onChange([...rows, { odooProductKey: options[0]?.odooProductKey ?? '', qty: 0 }])}
       >
         <Plus size={16} />
-        <span>Thêm màu</span>
+        <span>Add color</span>
       </button>
     </div>
   )
@@ -1144,7 +1144,7 @@ function LineOutputTable({
 }) {
   return (
     <SimpleTable
-      headers={['Mã Odoo', 'Display Name', mode === 'OUT' ? 'SL cần pick' : 'SL nhập', 'Trạng thái']}
+      headers={['Odoo code', 'Display Name', mode === 'OUT' ? 'Pick qty' : 'Inbound qty', 'Status']}
       rows={rows.map((row) => {
         const product = productByKey.get(row.odooProductKey)
         const currentQty = stockByProduct.get(row.odooProductKey) ?? 0
@@ -1152,7 +1152,7 @@ function LineOutputTable({
           row.odooProductKey,
           product?.displayName ?? row.odooProductKey,
           formatQty(row.qty),
-          mode === 'OUT' ? (currentQty >= row.qty ? 'Đủ hàng' : `Thiếu ${formatQty(row.qty - currentQty)}`) : 'Sẵn sàng nhập',
+          mode === 'OUT' ? (currentQty >= row.qty ? 'In stock' : `Short ${formatQty(row.qty - currentQty)}`) : 'Ready',
         ]
       })}
     />
@@ -1165,10 +1165,10 @@ function InventoryTable({ rows, compact = false }: { rows: InventoryRow[]; compa
       <table>
         <thead>
           <tr>
-            <th>Mã Odoo</th>
-            {!compact && <th>Tên</th>}
-            <th>Tồn hiện tại</th>
-            {!compact && <th>ĐVT</th>}
+            <th>Odoo code</th>
+            {!compact && <th>Name</th>}
+            <th>Current qty</th>
+            {!compact && <th>Unit</th>}
           </tr>
         </thead>
         <tbody>
@@ -1189,7 +1189,7 @@ function InventoryTable({ rows, compact = false }: { rows: InventoryRow[]; compa
 function CatalogTable({ rows }: { rows: CatalogRow[] }) {
   return (
     <SimpleTable
-      headers={['SKU', 'Product Name', 'Variation Name', 'Stock', 'Mapping', 'Chi tiết']}
+      headers={['SKU', 'Product Name', 'Variation Name', 'Stock', 'Mapping', 'Detail']}
       rows={rows.map((row) => [
         row.sku,
         row.productName,
@@ -1262,7 +1262,7 @@ function describeCatalogMapping(
   mapping: ShopeeMapping | undefined,
   componentsBySku: Map<string, ShopeeMappingComponent[]>,
 ) {
-  if (!mapping) return 'Chưa cấu hình'
+  if (!mapping) return 'Not configured'
   if (mapping.mappingType === 'FIXED_SKU') return mapping.odooProductKey ?? ''
   if (mapping.mappingType === 'MIX_COLOR') return `${mapping.mixGroupId ?? ''} / ${mapping.conversionQty}`
   const components = (componentsBySku.get(mapping.shopeeSku) ?? [])
@@ -1289,20 +1289,20 @@ function resolveBatchLine({
   const mapping = line.selectedSku ? mappingBySku.get(line.selectedSku) : undefined
   const requiredQty = Math.max(0, line.qty) * (mapping?.conversionQty ?? 0)
 
-  if (!line.selectedSku) errors.push('Chưa chọn SKU Shopee')
-  if (line.qty <= 0) errors.push('Số lượng Shopee phải lớn hơn 0')
-  if (line.selectedSku && !mapping) errors.push('SKU Shopee chưa có mapping')
+  if (!line.selectedSku) errors.push('No Shopee SKU selected')
+  if (line.qty <= 0) errors.push('Shopee quantity must be greater than 0')
+  if (line.selectedSku && !mapping) errors.push('Shopee SKU has no mapping')
 
   if (!mapping) {
     return { line, catalogItem, mapping, requiredQty, outputs: [], errors }
   }
 
   if (!mapping.active) {
-    return { line, catalogItem, mapping, requiredQty, outputs: [], errors: [...errors, 'Mapping đang inactive'] }
+    return { line, catalogItem, mapping, requiredQty, outputs: [], errors: [...errors, 'Mapping is inactive'] }
   }
 
   if (mapping.mappingType === 'FIXED_SKU') {
-    if (!mapping.odooProductKey) errors.push('Thiếu odoo_product_key')
+    if (!mapping.odooProductKey) errors.push('Missing odoo_product_key')
     return {
       line,
       catalogItem,
@@ -1315,7 +1315,7 @@ function resolveBatchLine({
 
   if (mapping.mappingType === 'COMBO_SKU') {
     const components = (componentsBySku.get(mapping.shopeeSku) ?? []).filter((component) => component.active)
-    if (components.length === 0) errors.push('Thiếu component cho combo')
+    if (components.length === 0) errors.push('Missing combo components')
     return {
       line,
       catalogItem,
@@ -1333,9 +1333,9 @@ function resolveBatchLine({
   const outputs = line.mixSelections.filter((selection) => selection.qty > 0)
   const totalQty = outputs.reduce((sum, item) => sum + item.qty, 0)
 
-  if (outputs.length === 0) errors.push('Chưa chọn mã Odoo cho mix màu')
-  if (outputs.some((selection) => !validOptions.has(selection.odooProductKey))) errors.push('Có mã Odoo không thuộc mix group')
-  if (totalQty !== requiredQty) errors.push(`Tổng mix phải bằng ${formatQty(requiredQty)}`)
+  if (outputs.length === 0) errors.push('No Odoo product selected for color mix')
+  if (outputs.some((selection) => !validOptions.has(selection.odooProductKey))) errors.push('Selected Odoo product is not in the mix group')
+  if (totalQty !== requiredQty) errors.push(`Mix total must equal ${formatQty(requiredQty)}`)
 
   return {
     line,

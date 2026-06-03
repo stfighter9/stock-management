@@ -32,11 +32,11 @@ async function requestJson<T>(input: string, init?: RequestInit) {
   try {
     payload = (await response.json()) as ApiResponse<T>
   } catch {
-    throw new Error('API trả về dữ liệu không hợp lệ')
+    throw new Error('API returned an invalid response')
   }
 
   if (!response.ok || !payload.success) {
-    throw new Error(payload.message || 'Có lỗi xảy ra khi gọi API')
+    throw new Error(payload.message || 'API request failed')
   }
 
   return payload.data
